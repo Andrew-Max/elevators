@@ -10,26 +10,22 @@
           elevator.on("passing_floor", function(floorNum) {
             var pressed = elevator.getPressedFloors()
             if (pressed.includes(floorNum)) {
-
+              stopAtFloor(elevator, floorNum)
             }
           })
         })
 
         floors.forEach(function(floor, index) {
           floor.on('up_button_pressed', function () {
-              attendCalls(nextUp(), index);
+              attendCalls(leastFull(), index);
           });
           floor.on('down_button_pressed', function () {
-            attendCalls(nextUp(), index);
+            attendCalls(leastFull(), index);
           });
         });
 
-        var atMinimumCapacity = function(elevator, num) {
-            if (elevator.loadFactor() < num) {
-                return false
-            } else {
-                return true
-            }
+        var atMaximumCapacity = function(elevator, num) {
+          return elevator.loadFactor() > num;
         }
 
         var cycleFloors = function(elevator) {
@@ -40,14 +36,7 @@
           elevator.checkDestinationQueue();
         }
 
-        var attendCalls = function (elevator, floor) {
-          elevator.goToFloor(floor);
-          // cycleFloors(elevators[1])
-        };
-
-
         var nextUp = function () {
-          debugger
           if (lastCalled + 1 >= elevators.length )  {
             lastCalled = 0
           } else {
@@ -55,10 +44,29 @@
           }
           return elevators[lastCalled]
         }
+
+        var leastFull = function () {
+          var lowestLoadFactor = 1;
+          var leastFull;
+          elevators.forEach(function(elevator, index) {
+            if (elevator.loadFactor() < lowestLoadFactor) {
+              lowestLoadFactor = elevator.loadFactor();
+              leastFull = elevator;
+            }
+          })
+          return leastFull;
+        }
+
+        var attendCalls = function (elevator, floor) {
+          elevator.goToFloor(floor);
+        };
+
+        var stopAtFloor = function(elevator, floorNum) {
+          elevator.destinationQueue.unshift(floorNum)
+          elevator.checkDestinationQueue();
+        }
     },
 
-    update: function(dt, elevators, floors) {
-        // We normally don't need to do anything here
-    }
+    update: function(dt, elevators, floors) {}
 }
 
